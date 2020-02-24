@@ -13,29 +13,47 @@ export const Container = styled.div`
 export const FormRow = styled.div`
   display: flex;
   flex-direction: row;
-  margin: 12px 0;
+  margin: 16px 0;
 `;
 
 export const FormField = styled.div`
-  display: flex;
   margin: 0 12px;
   flex: 1;
-  align-items: center;
+  position: relative;
 
-  label {
-    font-size: 14px;
+  div {
+    display: flex;
+    align-items: center;
+
+    label {
+      font-size: 14px;
+    }
+
+    & > * {
+      :first-child {
+        flex: 0.2;
+        max-width: 120px;
+        padding-right: 12px;
+      }
+
+      :last-child {
+        flex: 0.8;
+      }
+    }
   }
 
-  & > * {
-    :first-child {
-      flex: 0.2;
-      max-width: 120px;
-      padding-right: 12px;
-    }
-
-    :last-child {
-      flex: 0.8;
-    }
+  span.error-message {
+    padding: 1px 10px;
+    background: #ffdada;
+    margin: 0 auto;
+    border-radius: 4px;
+    color: #7d0000;
+    font-style: italic;
+    font-size: 14px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    transform: translateY(calc(100% + 4px));
   }
 `;
 
