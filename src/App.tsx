@@ -1,11 +1,11 @@
-import React from "react";
-import "./App.css";
-import { SupplierName } from "./components/SupplierName";
+import React from 'react';
+import './App.css';
+import { SupplierNameDialog } from './components/SupplierName';
 
 function App() {
   return (
-    <div className="App">
-      <SupplierName />
+    <div className="main-container">
+      <SupplierNameDialog />
     </div>
   );
 }
