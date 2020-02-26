@@ -2,6 +2,11 @@
   background: #fafafa;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+h1.main-title {
+  margin-bottom: 48px;
 }

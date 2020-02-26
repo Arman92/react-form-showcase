@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 
+// Main container of the component.
 export const Container = styled.div`
   width: 60%;
   margin: 0 auto;
@@ -10,12 +11,14 @@ export const Container = styled.div`
   }
 `;
 
+// Wrapper for each form row
 export const FormRow = styled.div`
   display: flex;
   flex-direction: row;
   margin: 16px 0;
 `;
 
+// Contains form elements (label, input/dropdown and error message)
 export const FormField = styled.div`
   margin: 0 12px;
   flex: 1;
@@ -57,6 +60,7 @@ export const FormField = styled.div`
   }
 `;
 
+// Contains form buttons (Save, Cancel, etc)
 export const FormActions = styled.div`
   display: flex;
   justify-content: flex-end;

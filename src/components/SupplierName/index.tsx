@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as yup from 'yup';
+import axios from 'axios';
 
 import { Container, FormRow, FormField, FormActions } from './styled';
 import { Input } from '../Shared/Input';
@@ -19,10 +20,12 @@ const defaultFormValues: SupplierName = {
   note: '',
 };
 
+// Validation Schema for Supplier Form
 const validationSchema = yup.object().shape({
   name: yup
     .string()
     .required('Name is required')
+    .min(3, 'Name min length is 3 characters')
     .max(512, 'Name Max Length is 512 Characters'),
   code: yup.string().max(32, 'Code Max Length is 32 Characters'),
   currency: yup.string().required('Currency Is Required'),
@@ -37,34 +40,75 @@ const validationSchema = yup.object().shape({
 });
 
 export const SupplierNameDialog = () => {
-  const [values, setValues] = useState<SupplierName>(defaultFormValues);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
-  const [isValid, setIsValid] = useState(false);
+  const [values, setValues] = useState<SupplierName>(defaultFormValues); //  Form values
+  const [errors, setErrors] = useState<{ [key: string]: string }>({}); //    Form validation errors
+  const [touched, setTouched] = useState<{ [key: string]: boolean }>({}); // Form elements touched status
+  const [isValid, setIsValid] = useState(false); //                          Flag to determine if form values are valid
 
+  // Handles form elements value change, it shall update the form values according to user input.
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const field = e.target.dataset.field ?? '';
 
     setValues({ ...values, [field]: e.target.value });
   };
 
+  // Handles form elements blur change to determine if the field has been touched by user.
   const handleBlurEvent = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const field = e.target.dataset.field ?? '';
 
     setTouched({ ...touched, [field]: true });
   };
 
+  // Handles cancel button click, resets the form to initial values.
   const handleCancelClick = () => {
     setValues(defaultFormValues);
   };
 
+  // Handle form submission, for now it doesn't do anything/
   const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (isValid) {
-      console.log(values);
+      // TODO: This is where actual form submission goes.
+
+      axios
+        .post(
+          'https://prod-28.centralus.logic.azure.com:443/workflows/c7fdf22487464b8e808f9007e9346120/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0rokiVYcg4kfmKpCzWXTbwTiIELkcI9H1jjdBh3pM7I',
+          JSON.parse(`{
+        "Action" : "add",
+        "ID" : "" ,
+        "ClientAccount_ID" : "B2BE95BD-36BB-4874-AAA2-A1C4CFFC28C1",
+        "Code" : "Arman Code" ,
+        "Name" : "Arman Name" ,
+        "Currency_ID" : "BE744592-84B5-43E1-8182-EFEB7FD1F462",
+        "PaymentTerm_ID" : "B2B16DD3-3AA0-4836-8A3F-47FEBF88B62B",
+        "TaxRule_ID" : "D36B2B42-F44C-4426-8CB7-0DEC59B52657" ,
+        "Discount" : 3.5 ,
+        "ExternalPlatformIntegration_ID" : "30D7D7F9-9ECA-48E2-B60A-1D16954EBFD6",
+        "AccountPayableName" : "Arman AccountPayableName" ,
+        "Carrier_ID" : "5207F93A-B965-4A11-A912-74A1E01681A3" ,
+        "TaxNumber" : "Arman TaxNumber",
+        "BankName" : "Arman BankName",
+        "BankAccount" : "Arman BankAccount",
+        "BankBranch" : "Arman BankBranch" ,
+        "User_ID" : "04B25433-C673-4F1E-8E38-AB865DB18B67",
+        "RecordStatus_ID" : "8DA19FA1-6EA3-4919-9CFF-A8217B6E7226",
+        "Note" : "Arman Note 1",
+        "DeliveryLeadTime" : 1,
+        "ActionType_ID" : "9FFFF767-75F5-464A-AAF8-906499969E24",
+        "ActionDate" : "2020-02-25 22:51:00"
+    }`)
+        )
+        .then(resp => {
+          alert('Form submission successed');
+          console.log(resp);
+        })
+        .catch(err => {
+          alert('Form submission failed');
+          console.error(err);
+        });
     } else {
-      for (let key of Object.keys(values)) {
+      for (const key of Object.keys(values)) {
         touched[key] = true;
 
         setTouched({ ...touched });
@@ -72,7 +116,7 @@ export const SupplierNameDialog = () => {
     }
   };
 
-  // Validate the form for errors
+  // Validate the form for errors every time user changes the form values.
   useEffect(() => {
     validationSchema
       .validate(values, { abortEarly: false })
@@ -82,9 +126,9 @@ export const SupplierNameDialog = () => {
       })
       .catch((root: yup.ValidationError) => {
         // Iterate over the errors to extract only the needed data (field name and error desc).
-        let newErrors: { [key: string]: string } = {};
+        const newErrors: { [key: string]: string } = {};
 
-        for (let error of root.inner) {
+        for (const error of root.inner) {
           newErrors[error.path] = error.message;
         }
         setErrors(newErrors);
@@ -105,7 +149,7 @@ export const SupplierNameDialog = () => {
                 type="text"
                 placeholder="Enter Supplier Name"
                 data-field="name"
-                value={values['name'] ?? ''}
+                value={values.name ?? ''}
                 className={errors.name && touched.name ? 'input-error' : ''}
                 onChange={handleInputChange}
                 onBlur={handleBlurEvent}
@@ -122,7 +166,7 @@ export const SupplierNameDialog = () => {
                 type="text"
                 placeholder="Enter Supplier Code"
                 data-field="code"
-                value={values['code'] ?? ''}
+                value={values.code ?? ''}
                 className={errors.code && touched.code ? 'input-error' : ''}
                 onChange={handleInputChange}
                 onBlur={handleBlurEvent}
@@ -138,12 +182,12 @@ export const SupplierNameDialog = () => {
               <label htmlFor="txtMoPO-SupplierCurrency#1001">Currency*</label>
               <Select
                 id="selMoPO-SupplierCurrency#1001"
-                value={values['currency']}
+                value={values.currency}
                 data-field="currency"
                 className={errors.currency && touched.currency ? 'input-error' : ''}
                 onChange={handleInputChange}
                 onBlur={handleBlurEvent}>
-                <option value="" disabled>
+                <option value="" disabled={true}>
                   Choose...
                 </option>
                 <option value="usd">USD</option>
@@ -161,7 +205,7 @@ export const SupplierNameDialog = () => {
                 step="0.01"
                 placeholder="Enter Discount %"
                 data-field="discount"
-                value={values['discount'] ?? ''}
+                value={values.discount ?? ''}
                 className={errors.discount && touched.discount ? 'input-error' : ''}
                 onChange={handleInputChange}
                 onBlur={handleBlurEvent}
@@ -177,12 +221,12 @@ export const SupplierNameDialog = () => {
               <label htmlFor="selMoPO-SupplierPayTerm#1001">Payment Term*</label>
               <Select
                 id="selMoPO-SupplierPayTerm#1001"
-                value={values['paymentTerm']}
+                value={values.paymentTerm}
                 data-field="paymentTerm"
                 className={errors.paymentTerm && touched.paymentTerm ? 'input-error' : ''}
                 onChange={handleInputChange}
                 onBlur={handleBlurEvent}>
-                <option value="" disabled>
+                <option value="" disabled={true}>
                   Choose...
                 </option>
                 <option value="long-term">Long-Term</option>
@@ -198,12 +242,12 @@ export const SupplierNameDialog = () => {
               <label htmlFor="selMoPO-SupplierTaxRule#1001">Tax Rule*</label>
               <Select
                 id="selMoPO-SupplierTaxRule#1001"
-                value={values['taxRule']}
+                value={values.taxRule}
                 data-field="taxRule"
                 className={errors.taxRule && touched.taxRule ? 'input-error' : ''}
                 onChange={handleInputChange}
                 onBlur={handleBlurEvent}>
-                <option value="" disabled>
+                <option value="" disabled={true}>
                   Choose...
                 </option>
                 <option value="rule1">Rule 1</option>
@@ -220,12 +264,12 @@ export const SupplierNameDialog = () => {
               <label htmlFor="txtMoPO-SupplierCarrier#1001">Carrier</label>
               <Select
                 id="txtMoPO-SupplierCarrier#1001"
-                value={values['carrier']}
+                value={values.carrier}
                 data-field="carrier"
                 className={errors.carrier && touched.carrier ? 'input-error' : ''}
                 onChange={handleInputChange}
                 onBlur={handleBlurEvent}>
-                <option value="" disabled>
+                <option value="" disabled={true}>
                   Choose...
                 </option>
                 <option value="carrier-1">Carrier 1</option>
@@ -243,7 +287,7 @@ export const SupplierNameDialog = () => {
                 placeholder="Enter Tax Number"
                 data-field="taxNumber"
                 className={errors.taxNumber && touched.taxNumber ? 'input-error' : ''}
-                value={values['taxNumber'] ?? ''}
+                value={values.taxNumber ?? ''}
                 onChange={handleInputChange}
                 onBlur={handleBlurEvent}
               />
@@ -259,11 +303,12 @@ export const SupplierNameDialog = () => {
               <textarea
                 id="txtMoPO-SupplierNote#1001"
                 data-field="note"
-                value={values['note'] ?? ''}
+                value={values.note ?? ''}
                 className={errors.note && touched.note ? 'input-error' : ''}
                 style={{ flex: 1 }}
                 onChange={handleInputChange}
-                onBlur={handleBlurEvent}></textarea>
+                onBlur={handleBlurEvent}
+              />
             </div>
             {touched.note && errors.note ? <span className="error-message">{errors.note}</span> : null}
           </FormField>
