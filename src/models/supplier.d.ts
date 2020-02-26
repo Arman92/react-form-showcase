@@ -1,4 +1,4 @@
-export type SupplierName = {
+export type Supplier = {
   name: string;
   code: string;
   currency: '' | 'usd' | 'eur';

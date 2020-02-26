@@ -1,48 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import * as yup from 'yup';
-import axios from 'axios';
 
 import { Container, FormRow, FormField, FormActions } from './styled';
 import { Input } from '../Shared/Input';
 import { Button } from '../Shared/Button';
 import { Select } from '../Shared/Select';
-import { SupplierName } from '../../models/supplier-name';
+import { Supplier } from '../../models/supplier';
+import { defaultFormValues, validationSchema } from './helper';
 
-const defaultFormValues: SupplierName = {
-  name: '',
-  code: '',
-  currency: '',
-  discount: 0,
-  paymentTerm: '',
-  taxRule: '',
-  carrier: '',
-  taxNumber: 0,
-  note: '',
+type Props = {
+  // Will be get called when use submits the (valid) form.
+  onFormSubmitted?: (formValues: Supplier) => void;
 };
 
-// Validation Schema for Supplier Form
-const validationSchema = yup.object().shape({
-  name: yup
-    .string()
-    .required('Name is required')
-    .min(3, 'Name min length is 3 characters')
-    .max(512, 'Name Max Length is 512 Characters'),
-  code: yup.string().max(32, 'Code Max Length is 32 Characters'),
-  currency: yup.string().required('Currency Is Required'),
-  discount: yup
-    .number()
-    .min(0, 'Discount can not be negative')
-    .max(99.99, 'Discount can not exceed 99.99%'),
-  paymentTerm: yup.string().required('Payment Term Is Required'),
-  taxRule: yup.string().required('Tax Rule Is Required'),
-  taxNumber: yup.string().max(32, 'Tax Number Max Length is 32 Characters'),
-  note: yup.string().max(1024, 'Note Max Length is 1024 Characters'),
-});
-
-export const SupplierNameDialog = () => {
-  const [values, setValues] = useState<SupplierName>(defaultFormValues); //  Form values
+export const SupplierAdd: FC<Props> = ({ onFormSubmitted }: Props) => {
+  const [values, setValues] = useState<Supplier>(defaultFormValues); //      Form values
   const [errors, setErrors] = useState<{ [key: string]: string }>({}); //    Form validation errors
-  const [touched, setTouched] = useState<{ [key: string]: boolean }>({}); // Form elements touched status
+  const [touched, setTouched] = useState<{ [key: string]: boolean }>({}); // Form elements 'touched' status
   const [isValid, setIsValid] = useState(false); //                          Flag to determine if form values are valid
 
   // Handles form elements value change, it shall update the form values according to user input.
@@ -69,44 +43,8 @@ export const SupplierNameDialog = () => {
     event.preventDefault();
 
     if (isValid) {
-      // TODO: This is where actual form submission goes.
-
-      axios
-        .post(
-          'https://prod-28.centralus.logic.azure.com:443/workflows/c7fdf22487464b8e808f9007e9346120/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0rokiVYcg4kfmKpCzWXTbwTiIELkcI9H1jjdBh3pM7I',
-          JSON.parse(`{
-        "Action" : "add",
-        "ID" : "" ,
-        "ClientAccount_ID" : "B2BE95BD-36BB-4874-AAA2-A1C4CFFC28C1",
-        "Code" : "Arman Code" ,
-        "Name" : "Arman Name" ,
-        "Currency_ID" : "BE744592-84B5-43E1-8182-EFEB7FD1F462",
-        "PaymentTerm_ID" : "B2B16DD3-3AA0-4836-8A3F-47FEBF88B62B",
-        "TaxRule_ID" : "D36B2B42-F44C-4426-8CB7-0DEC59B52657" ,
-        "Discount" : 3.5 ,
-        "ExternalPlatformIntegration_ID" : "30D7D7F9-9ECA-48E2-B60A-1D16954EBFD6",
-        "AccountPayableName" : "Arman AccountPayableName" ,
-        "Carrier_ID" : "5207F93A-B965-4A11-A912-74A1E01681A3" ,
-        "TaxNumber" : "Arman TaxNumber",
-        "BankName" : "Arman BankName",
-        "BankAccount" : "Arman BankAccount",
-        "BankBranch" : "Arman BankBranch" ,
-        "User_ID" : "04B25433-C673-4F1E-8E38-AB865DB18B67",
-        "RecordStatus_ID" : "8DA19FA1-6EA3-4919-9CFF-A8217B6E7226",
-        "Note" : "Arman Note 1",
-        "DeliveryLeadTime" : 1,
-        "ActionType_ID" : "9FFFF767-75F5-464A-AAF8-906499969E24",
-        "ActionDate" : "2020-02-25 22:51:00"
-    }`)
-        )
-        .then(resp => {
-          alert('Form submission successed');
-          console.log(resp);
-        })
-        .catch(err => {
-          alert('Form submission failed');
-          console.error(err);
-        });
+      // Form is valid, if the parent component has provided 'onFormSubmitted' callback, let's invoke it.
+      if (onFormSubmitted) onFormSubmitted(values);
     } else {
       for (const key of Object.keys(values)) {
         touched[key] = true;
@@ -120,7 +58,7 @@ export const SupplierNameDialog = () => {
   useEffect(() => {
     validationSchema
       .validate(values, { abortEarly: false })
-      .then(a => {
+      .then(() => {
         setErrors({});
         setIsValid(true);
       })
